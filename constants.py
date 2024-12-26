@@ -12,7 +12,13 @@ class Constants:
         self._L_BACKWARD = -1
         self._R_BACKWARD = 1
 
-        self._MOTOR_PINS = [Pin(15, Pin.OUT), Pin(14, Pin.OUT), Pin(16, Pin.OUT), Pin(17, Pin.OUT)]
+        self._L_MOTOR_PINS = [Pin(15, Pin.OUT), Pin(14, Pin.OUT), Pin(16, Pin.OUT), Pin(17, Pin.OUT)]
+
+        self._R_MOTOR_PINS = [Pin(12, Pin.OUT), Pin(13, Pin.OUT), Pin(18, Pin.OUT), Pin(19, Pin.OUT)]
+
+        # 15 14 16 17
+
+        # 12 13 18 19
 
         self._STEP_SEQUENCE = [
             [1, 0, 0, 1],
@@ -54,10 +60,18 @@ class Constants:
         raise AttributeError("ERROR : Cannot change the value of an ImmutableValue instance.")
     
     @property
-    def MOTOR_PINS(self):
+    def L_MOTOR_PINS(self):
         return self._MOTOR_PINS
     
-    @MOTOR_PINS.setter
+    @L_MOTOR_PINS.setter
+    def value(self, new_value):
+        raise AttributeError("ERROR : Cannot change the value of an ImmutableValue instance.")
+    
+    @property
+    def R_MOTOR_PINS(self):
+        return self._MOTOR_PINS
+    
+    @R_MOTOR_PINS.setter
     def value(self, new_value):
         raise AttributeError("ERROR : Cannot change the value of an ImmutableValue instance.")
     
