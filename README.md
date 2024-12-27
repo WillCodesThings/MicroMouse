@@ -1,4 +1,4 @@
-# Stepper Motor Control System - Project Write-Up
+# MicroMouse - Project Write-Up
 
 This project implements a stepper motor control system that autonomously adjusts motor speed and direction based on sensor feedback. It utilizes MicroPython and asynchronous programming with `uasyncio` to efficiently manage motor movements, sensor readings, and speed control, ensuring smooth operation without blocking.
 
@@ -16,7 +16,7 @@ This project implements a stepper motor control system that autonomously adjusts
 
 ## Introduction
 
-The **Stepper Motor Control System** is designed to control a dual-stepper motor setup, reacting to obstacles detected by three infrared (IR) sensors. The system adjusts its movement based on sensor inputs to navigate autonomously, making decisions such as turning left, right, or moving forward. Additionally, the motor speed can be controlled via DIP switches, allowing for adjustable movement behavior.
+The **Stepper Motor Control System** aka. MicroMouse is designed to control a dual-stepper motor setup, reacting to obstacles detected by three infrared (IR) sensors. The system adjusts its movement based on sensor inputs to navigate autonomously, making decisions such as turning left, right, or moving forward. Additionally, the motor speed can be controlled via DIP switches, allowing for adjustable movement behavior.
 
 This project is ideal for applications such as autonomous robots, movement-based sensing systems, or simple robot navigation tasks.
 
