@@ -1,57 +1,77 @@
-# import utime
-# from machine import Pin
-# from subsystem.stepperMotor import stepperMotor
+import utime
+from machine import Pin
+from subsystem.stepperMotor import stepperMotor, SimultaneousMotorStep, DipSwitchSpeedControl
 from subsystem.irSensor import IR_Sensor
+import uasyncio as asyncio
 
-# Define the pins for the stepper motor
-# stepper_pins = [Pin(12, Pin.OUT), Pin(13, Pin.OUT), Pin(14, Pin.OUT), Pin(15, Pin.OUT)]
+speed_control = DipSwitchSpeedControl()
 
-# LeftMotor = stepperMotor(stepper_pins)
-# RightMotor = stepperMotor(stepper_pins)
-LSensor, FSensor, RSensor= IR_Sensor(33), IR_Sensor(44), IR_Sensor(51)
+LED = Pin("LED", Pin.OUT)
 
-# Everytime variable is accessed it will poll new sensor data
+lastSpeed = 0
+
+LeftMotor = stepperMotor([19, 18, 17, 16])
+RightMotor = stepperMotor([12, 13, 14, 15])
+LSensor, FSensor, RSensor = IR_Sensor(4), IR_Sensor(5), IR_Sensor(6)
+
+# Every time variable is accessed it will poll new sensor data
 valueTuple = lambda: (LSensor.value(), FSensor.value(), RSensor.value())
 
-### Testing
-# valueTuple = lambda: (0, 0, 0)
-# valueTuple = lambda: (0, 0, 1)
-# valueTuple = lambda: (0, 1, 1)
-# valueTuple = lambda: (1, 1, 1)
-###
+# Optimized Command Scheduler
+class CommandScheduler:
+    def __init__(self):
+        self.current_task = None
 
-# # Take the specified number of steps in the anti-clockwise direction with a delay of 0.01 seconds between steps
-# step(1, 500, 0.01)
-# # Take the specified number of steps in the clockwise direction with a delay of 0.01 seconds between steps
-# step(-1, 500, 0.01)
+    async def run_command(self, command):
+        if self.current_task and not self.current_task.done():
+            self.current_task.cancel()
+        self.current_task = asyncio.create_task(command())
 
-def turnRight():
-    print("turning right")
-def turnLeft():
-    print("turning left")
-def action():
-    print("moving forward")
+scheduler = CommandScheduler()
 
-def simpeFigure(valueTuple):
+async def turnRight(speed):
+    await SimultaneousMotorStep.run_motors_simultaneously(RightMotor, LeftMotor, 1, 100, speed, -1, 100, speed)
+
+async def turnLeft(speed):
+    await SimultaneousMotorStep.run_motors_simultaneously(RightMotor, LeftMotor, -1, 100, speed, 1, 100, speed)
+
+async def action(speed):
+    await SimultaneousMotorStep.run_motors_simultaneously(RightMotor, LeftMotor, 1, 100, speed, 1, 100, speed)
+
+async def simpleFigure(valueTuple):
+    global lastSpeed
+
     # Unpack sensor data to get all values at once
     initTuple = valueTuple
 
-    if initTuple[2] == 0:
-        turnRight()
-        action()
-    elif initTuple[1]== 0:
-        action()
-    elif initTuple[0] == 0:
-        turnLeft()
-        action()
-    else: 
-        turnLeft()
+    speed = speed_control.get_speed_delay()
 
-for h in range(2):
-    for j in range(2):
-        for i in range(2):
-            valueTuple = (i, j, h)
-            print(f"\n\n Case ({i},{j},{h})")
-            print(valueTuple)
-            simpeFigure(valueTuple)
-            print("\n\n")
+    if lastSpeed != speed:
+        for i in range(speed * 10):
+            LED.toggle()
+            await asyncio.sleep(0.2)
+        lastSpeed = speed
+        LED.off()
+
+    if initTuple[2] == 0:
+        await scheduler.run_command(lambda: turnRight(speed))
+        await asyncio.sleep(0.1)
+        await scheduler.run_command(lambda: action(speed))
+    elif initTuple[1] == 0:
+        await scheduler.run_command(lambda: action(speed))
+    elif initTuple[0] == 0:
+        await scheduler.run_command(lambda: turnLeft(speed))
+        await asyncio.sleep(0.1)
+        await scheduler.run_command(lambda: action(speed))
+    else:
+        await scheduler.run_command(lambda: turnLeft(speed))
+
+async def main():
+    while True:
+        print("\n\n")
+        await simpleFigure(valueTuple())
+        print("\n\n")
+        await asyncio.sleep(0.01)
+
+asyncio.run(main())
+
