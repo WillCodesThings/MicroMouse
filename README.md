@@ -16,7 +16,7 @@ This project implements a stepper motor control system that autonomously adjusts
 
 ## Introduction
 
-The **Stepper Motor Control System** aka. MicroMouse is designed to control a dual-stepper motor setup, reacting to obstacles detected by three infrared (IR) sensors. The system adjusts its movement based on sensor inputs to navigate autonomously, making decisions such as turning left, right, or moving forward. Additionally, the motor speed can be controlled via DIP switches, allowing for adjustable movement behavior.
+The **Stepper Motor Control System** aka MicroMouse is designed to control a dual-stepper motor setup, reacting to obstacles detected by three infrared (IR) sensors. The system adjusts its movement based on sensor inputs to navigate autonomously, making decisions such as turning left, right, or moving forward. Additionally, the motor speed can be controlled via DIP switches, allowing for adjustable movement behavior.
 
 This project is ideal for applications such as autonomous robots, movement-based sensing systems, or simple robot navigation tasks.
 
@@ -50,10 +50,11 @@ The stepper motor is controlled via a sequence of steps that define its directio
 
 Three IR sensors (left, front, and right) detect obstacles in the path of the robot. The input from these sensors is processed to determine the appropriate motor movement:
 
-- If the **right sensor** detects an obstacle, the robot turns left.
-- If the **left sensor** detects an obstacle, the robot turns right.
-- If the **front sensor** detects an obstacle, the robot moves forward.
-- If no sensor is triggered, the robot defaults to turning left.
+- If the **right sensor** detects an obstacle, the robot continues moving forward. This behavior ensures the robot is staying close to the right wall.
+- If the **right sensor** is clear, the robot turns left to keep the right side against the wall.
+- If the **front sensor** detects an obstacle, the robot turns right to avoid collisions.
+- If the **left sensor** detects an obstacle, the robot turns right to stay close to the wall and avoid becoming stuck.
+- If no sensors are triggered, the robot continues to follow the right wall, adjusting its movement to ensure it stays aligned with the wall.
 
 ### 3. **DIP Switch Speed Control**
 
@@ -63,20 +64,21 @@ Four DIP switches control the speed of the stepper motors by adjusting the delay
 
 ## Control Flow
 
-The core control flow of the system operates asynchronously to ensure the smooth execution of tasks. Below is a high-level description of how the system works:
+The core control flow of the system operates asynchronously to ensure the smooth execution of tasks. Below is a high-level description of how the system works, with a focus on the robot's right-wall-following behavior:
 
 ### Main Loop
 
 - The `main` function initiates a loop where it continuously calls the `simpleFigure` function to assess the sensor values and control the motors accordingly.
 
-### Sensor Value Processing
+### Sensor Value Processing (Right-Wall Following)
 
 - The `simpleFigure` function retrieves the values from the IR sensors and adjusts the speed by calling the `DipSwitchSpeedControl` class.
-- The system then processes the sensor values:
-  - If the **right sensor** detects an obstacle, it triggers the `turnRight` function.
-  - If the **left sensor** detects an obstacle, it triggers the `turnLeft` function.
-  - If the **front sensor** detects an obstacle, the `action` function is triggered to move forward.
-  - If no sensors are triggered, the system defaults to turning left.
+- The system then processes the sensor values to implement the right-wall-following algorithm:
+  - If the **right sensor** detects an obstacle (sensor value = 0), the robot continues moving forward. This behavior ensures the robot is staying close to the right wall.
+  - If the **right sensor** is clear (sensor value = 1), the robot turns left to keep the right side against the wall.
+  - If the **front sensor** detects an obstacle (sensor value = 0), the robot turns right to avoid collisions.
+  - If the **left sensor** detects an obstacle (sensor value = 0), the robot turns right as well, to stay close to the wall and avoid becoming stuck.
+  - If no sensor is triggered, the robot continues to follow the right wall, adjusting its movement to ensure it stays aligned with the wall.
 
 ### Speed Control
 
@@ -84,7 +86,7 @@ The core control flow of the system operates asynchronously to ensure the smooth
 
 ### Motor Movement
 
-- The `SimultaneousMotorStep` class allows for synchronous control of both the left and right motors. Both motors are adjusted simultaneously to ensure smooth and coordinated movement in the desired direction.
+- The `SimultaneousMotorStep` class allows for synchronized control of both the left and right motors. Both motors are adjusted simultaneously to ensure smooth and coordinated movement as the robot follows the right wall.
 
 ---
 
