@@ -73,5 +73,7 @@ async def main():
         print("\n\n")
         await asyncio.sleep(0.01)
 
+        print("working")
+
 asyncio.run(main())
 
